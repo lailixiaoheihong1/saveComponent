@@ -39,10 +39,17 @@ const arrToStr = (arr) => {
 
 }
 
-const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue} ) => {
+const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue, close} ) => {
     const [allActive, setAllActive] = useState(defaultValue ? true : false);
+    const [ulHeight, setUlHeight] = useState(0);
 
     const searchRef = useRef(defaultValue);
+
+    const ulEle = useCallback((node) => {
+        if ( node != null ) {
+            setUlHeight(node.offsetHeight)
+        }
+    });
 
     const handleAllClick = () => {
         setAllActive(true);
@@ -60,18 +67,32 @@ const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue
         getSearchValue(arrToStr(searchRef.current));
     }
 
-    return <ul className={`search-list`}>
-        <li className={ allActive ? 'active all' : 'all'} onClick={ handleAllClick }>全部</li>
+    return <>
+        <CSSTransition in={ !close } timeout={0} 
+        onEnter={ (ele) => { ele.style.height = 0 + 'px' } }
+        onEntering={(ele) => { ele.style.height = ulHeight * 0.5 + 'px' }} 
+        onEntered={(ele) => { ele.style.height = ulHeight + 'px' }}
+        onExit={ (ele) => { ele.style.height = ulHeight + 'px' } }
+        onExiting={ (ele) => { ele.style.height = ulHeight * 0.5 + 'px' } }
+        onExited={ (ele) => { ele.style.height = 0 + 'px' } }
+    > 
+        <div className={`transition-container`}>
         {
-            chooseItems.map((item, index) => {
-                return <SmallAdvancedSearch id={item.value} activeFlag={ defaultValue.includes(item.value) && !allActive ? true : false } value={ item.text } onClick={ handleClick } key={index}></SmallAdvancedSearch>
-            })
+            <ul className={`search-list`} ref={ulEle}>
+                <li className={ allActive ? 'active all' : 'all'} onClick={ handleAllClick }>全部</li>
+                {
+                    chooseItems.map((item, index) => {
+                        return <SmallAdvancedSearch id={item.value} activeFlag={ defaultValue.includes(item.value) && !allActive ? true : false } value={ item.text } onClick={ handleClick } key={index}></SmallAdvancedSearch>
+                    })
+                }
+            </ul>
         }
-    </ul>
+        </div>
+    </CSSTransition>
+    </>
 })
 
 const SmallAdvancedSearch = memo(({id, value, onClick, activeFlag=false}) => {
-    console.log("activeFlag", activeFlag);
     const [active, setActive] = useState(activeFlag);
 
     const handleClick = (activeFlag) => {
@@ -92,13 +113,6 @@ const GradesSearch = memo(({getSearchValue, unset=true, nodeChange, defaultValue
 
     const [data, setData] = useState([]);
     const [close, setClose] = useState(false);
-    const [ulHeight, setUlHeight] = useState(0);
-
-    const ulEle = useCallback((node) => {
-        if ( node != null ) {
-            setUlHeight(node.offsetHeight)
-        }
-    }, [nodeChange]);
 
     useEffect(() => {
         Api.courseProperty.get({type: 'grade'}).then((res) => {
@@ -120,16 +134,7 @@ const GradesSearch = memo(({getSearchValue, unset=true, nodeChange, defaultValue
         <div className="iconfont-container"><i className={`iconfont icon-31fanhui1 ${close ? 'close' : ''}`} onClick={() => {handleIconClick(close)}} ></i></div>
     </div>
     <div className="ul-container">
-        <CSSTransition in={ !close } timeout={0} 
-            onEnter={ (ele) => { ele.style.height = 0 + 'px' } }
-            onEntering={(ele) => { ele.style.height = ulHeight * 0.5 + 'px' }} 
-            onEntered={(ele) => { ele.style.height = ulHeight + 'px' }}
-            onExit={ (ele) => { ele.style.height = ulHeight + 'px' } }
-            onExiting={ (ele) => { ele.style.height = ulHeight * 0.5 + 'px' } }
-            onExited={ (ele) => { ele.style.height = 0 + 'px' } }
-        >
-            <ChooseTag chooseItems={data} unset={unset} defaultValue={defaultValue} getSearchValue={handleClick}></ChooseTag>
-        </CSSTransition>
+        <ChooseTag chooseItems={data} unset={unset} defaultValue={defaultValue} getSearchValue={handleClick} close={close}></ChooseTag>
     </div>
 </div>
     
@@ -137,17 +142,10 @@ const GradesSearch = memo(({getSearchValue, unset=true, nodeChange, defaultValue
 });
 
 const ThemeSearch = memo(( { defaultValue, getSearchValue, unset=false, nodeChange } ) => {
-    const [ulHeight, setUlHeight] = useState(0);
     const [activeIndex, setActiveIndex] = useState(null);
     const [themeData, setThemeData] = useState([]);
 
     const searchRef = useRef({topic_id: defaultValue.topic_id, column_id: defaultValue.column_id});
-
-    const ulEle = useCallback((node) => {
-        if ( node != null ) {
-            setUlHeight(node.offsetHeight)
-        }
-    }, [nodeChange]);
 
     // 获取主题数据(看看是不是要依赖于空数组)
     useEffect(() => {
@@ -181,7 +179,6 @@ const ThemeSearch = memo(( { defaultValue, getSearchValue, unset=false, nodeChan
         themeData.map((item, index) => {
             if ( item.value === e.themeId ) {
                 setActiveIndex(index);
-                console.log("index", index);
             }
         });
         let variable = defaultValue.onlineSign ? 'column_id' : 'cate_id';
@@ -194,22 +191,11 @@ const ThemeSearch = memo(( { defaultValue, getSearchValue, unset=false, nodeChan
         <DropdownMenu activeColor="#0062cc" overlay={ false } onChange={ (e) => { handleChange(e) } } value={ activeIndex !== null ? { themeId: themeData[activeIndex].value } : '' }>
             <DropdownMenu.Item options={themeData} name="themeId" placeholder={ defaultValue.onlineSign ? '请选择你的分类' : '请选择你的主题' }/>
         </DropdownMenu>
-        {
-            <CSSTransition in={ true } timeout={0} 
-                onEnter={ (ele) => { ele.style.height = 0 + 'px' } }
-                onEntering={(ele) => { ele.style.height = ulHeight * 0.5 + 'px' }} 
-                onEntered={(ele) => { ele.style.height = ulHeight + 'px' }}
-                onExit={ (ele) => { ele.style.height = ulHeight + 'px' } }
-                onExiting={ (ele) => { ele.style.height = ulHeight * 0.5 + 'px' } }
-                onExited={ (ele) => { ele.style.height = 0 + 'px' } }
-            >
-                    <div className="part" ref={ ulEle }>
-                        <div className="ul-container" >
-                        <ChooseTag chooseItems={activeIndex !== null ? themeData[activeIndex].children : []} unset={unset} defaultValue={strToArr(defaultValue.topic_id)} getSearchValue={handleClick} />
-                        </div>
-                    </div>
-            </CSSTransition>
-        }
+        <div className="part">
+            <div className="ul-container" >
+            <ChooseTag chooseItems={activeIndex !== null ? themeData[activeIndex].children : []} unset={unset} defaultValue={strToArr(defaultValue.topic_id)} getSearchValue={handleClick} />
+            </div>
+        </div>
     </div>
 })
 
