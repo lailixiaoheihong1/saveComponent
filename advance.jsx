@@ -141,7 +141,7 @@ const GradesSearch = memo(({getSearchValue, unset, nodeChange, defaultValue}) =>
         <div className="iconfont-container"><i className={`iconfont icon-31fanhui1 ${close ? 'close' : ''}`} onClick={() => {handleIconClick(close)}} ></i></div>
     </div>
     <div className="ul-container">
-        <ChooseTag chooseItems={data} unset={unset} defaultValue={defaultValue} getSearchValue={handleClick} close={close}></ChooseTag>
+        <ChooseTag chooseItems={data} unset={unset} defaultValue={strToArr(defaultValue)} getSearchValue={handleClick} close={close}></ChooseTag>
     </div>
 </div>
     
@@ -298,7 +298,7 @@ export const AdvancedSearch = memo(({visible=false, onConfirm=() => {},  onClick
                     {
                         <div className="grade">
                             <div className="grade-choose-panel" >
-                                <GradesSearch getSearchValue={handleClick} unset={unset} nodeChange={scrollBarWidth} defaultValue={defaultValue.grade_id}></GradesSearch>
+                                <GradesSearch getSearchValue={handleClick} unset={unset} nodeChange={scrollBarWidth} defaultValue={submitValue.grade_id}></GradesSearch>
                             </div> 
                         </div>
                     }
