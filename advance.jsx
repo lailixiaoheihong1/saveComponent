@@ -40,7 +40,7 @@ const arrToStr = (arr) => {
 }
 
 const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue, close} ) => {
-    const [allActive, setAllActive] = useState(defaultValue ? true : false);
+    const [allActive, setAllActive] = useState(defaultValue || unset ? true : false);
     const [ulHeight, setUlHeight] = useState(0);
 
     const searchRef = useRef(defaultValue);
@@ -50,6 +50,13 @@ const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue
             setUlHeight(node.offsetHeight)
         }
     });
+
+    useEffect(() => {
+        if (unset) {
+            setAllActive(true);
+            searchRef.current = [];
+        }
+    }, [unset])
 
     const handleAllClick = () => {
         setAllActive(true);
@@ -109,7 +116,7 @@ const SmallAdvancedSearch = memo(({id, value, onClick, activeFlag=false}) => {
     </li>
 });
 
-const GradesSearch = memo(({getSearchValue, unset=true, nodeChange, defaultValue}) => {
+const GradesSearch = memo(({getSearchValue, unset, nodeChange, defaultValue}) => {
 
     const [data, setData] = useState([]);
     const [close, setClose] = useState(false);
@@ -141,7 +148,7 @@ const GradesSearch = memo(({getSearchValue, unset=true, nodeChange, defaultValue
     
 });
 
-const ThemeSearch = memo(( { defaultValue, getSearchValue, unset=false, nodeChange } ) => {
+const ThemeSearch = memo(( { defaultValue, getSearchValue, unset, nodeChange } ) => {
     const [activeIndex, setActiveIndex] = useState(null);
     const [themeData, setThemeData] = useState([]);
 
@@ -270,7 +277,7 @@ export const AdvancedSearch = memo(({visible=false, onConfirm=() => {},  onClick
     // 弹窗的重置事件
     const handleReset = () => {
         setUnSet(true);
-        setSubmitValue({});
+        setSubmitValue({column_id: defaultValue.column_id});
     };
 
     return <Popup visible={visible} position="right" onClick={onClickOverlay} className="advanceSearchPopup">
