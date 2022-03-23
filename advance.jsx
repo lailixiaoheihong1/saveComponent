@@ -74,8 +74,7 @@ const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue
         getSearchValue(arrToStr(searchRef.current));
     }
 
-    return <>
-        <CSSTransition in={ !close } timeout={0} 
+    return <CSSTransition in={ !close } timeout={0} 
         onEnter={ (ele) => { ele.style.height = 0 + 'px' } }
         onEntering={(ele) => { ele.style.height = ulHeight * 0.5 + 'px' }} 
         onEntered={(ele) => { ele.style.height = ulHeight + 'px' }}
@@ -96,7 +95,6 @@ const ChooseTag = memo(( {chooseItems=[], unset, defaultValue=[], getSearchValue
         }
         </div>
     </CSSTransition>
-    </>
 })
 
 const SmallAdvancedSearch = memo(({id, value, onClick, activeFlag=false}) => {
@@ -151,6 +149,7 @@ const GradesSearch = memo(({getSearchValue, unset, nodeChange, defaultValue}) =>
 const ThemeSearch = memo(( { defaultValue, getSearchValue, unset, nodeChange } ) => {
     const [activeIndex, setActiveIndex] = useState(null);
     const [themeData, setThemeData] = useState([]);
+    const [close, setClose] = useState(defaultValue.column_id ? false : true);
 
     const searchRef = useRef({topic_id: defaultValue.topic_id, column_id: defaultValue.column_id});
 
@@ -183,12 +182,14 @@ const ThemeSearch = memo(( { defaultValue, getSearchValue, unset, nodeChange } )
     };
 
     const handleChange = (e) => {
+        setClose(false);
         themeData.map((item, index) => {
             if ( item.value === e.themeId ) {
                 setActiveIndex(index);
             }
         });
-        let variable = defaultValue.onlineSign ? 'column_id' : 'cate_id';
+        let variable = defaultValue.onlineSign ? 'cate_id' : 'column_id';
+        console.log("variable", variable);
         searchRef.current.column_id = e.themeId;
         getSearchValue({[variable]: e.themeId});
     };
@@ -200,7 +201,9 @@ const ThemeSearch = memo(( { defaultValue, getSearchValue, unset, nodeChange } )
         </DropdownMenu>
         <div className="part">
             <div className="ul-container" >
-            <ChooseTag chooseItems={activeIndex !== null ? themeData[activeIndex].children : []} unset={unset} defaultValue={strToArr(defaultValue.topic_id)} getSearchValue={handleClick} />
+                {
+                    close ? '' : <ChooseTag chooseItems={activeIndex !== null ? themeData[activeIndex].children : []} unset={unset} defaultValue={strToArr(defaultValue.topic_id)} getSearchValue={handleClick} />
+                }
             </div>
         </div>
     </div>
@@ -235,11 +238,6 @@ export const AdvancedSearch = memo(({visible=false, onConfirm=() => {},  onClick
         }
     }, []);
 
-    // 带了默认值 用于返回的时候能够得到原来的数据
-    useEffect(() => {
-        // handleConfirm(defaultValue);
-    }, []);
-
     // 年级tab的点击事件
     const handleClick = (inputName, str) => {
         setUnSet(false);
@@ -260,6 +258,7 @@ export const AdvancedSearch = memo(({visible=false, onConfirm=() => {},  onClick
     }
     // 弹窗的确定的点击事件
     const handleConfirm = (obj) => {
+        console.log(obj);
         Api.course.get({
             ...obj
         }).then((res) => {
